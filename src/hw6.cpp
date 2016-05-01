@@ -35,24 +35,22 @@ int main(int argc, char *argv[]){
     }
     uint8_t *output = NULL;
 
-    sobel_filter sobel;
+    edge_detect sobel;
 
     /*
      * start timer
      */
     sobel.timer_start();
-#if DATA_OUT_TOTAL == 0
     double copy_compute_time = 0;
-#endif
 
     /*
      * Push file data to device memory & run sobel filter
      */
-#if DATA_OUT_TOTAL
-    sobel.gpu_load( &host_image, width, height, &output );
-#else
     copy_compute_time = sobel.gpu_load( &host_image, width, height, &output );
-#endif
+    if( copy_compute_time == -1 ){
+        return -1;
+    }
+
 
     /*
      * verify errors
@@ -86,7 +84,7 @@ int main(int argc, char *argv[]){
     std::cout << "Total time: " << total_time << " ms" << std::endl;
     std::cout << "Error percentage: " << errors << std::endl;
 #endif
-    
+
     /*
      * Cleanup
      */

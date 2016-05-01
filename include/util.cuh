@@ -25,8 +25,7 @@
 // debug helpers
 #ifndef err
 #define err(e) \
-    std::cerr << BRED << "[ERROR] " << e << GREY << std::endl; \
-    return 0;
+    std::cerr << BRED << "[ERROR] " << e << GREY << std::endl;
 #endif
 
 #ifndef debug_err
@@ -58,7 +57,7 @@
 #endif
 
 
-class sobel_filter{
+class edge_detect{
 public:
     StopWatchInterface *timer;
     double gpu_load( uint8_t **host_image, uint32_t width, uint32_t height, uint8_t** output );
