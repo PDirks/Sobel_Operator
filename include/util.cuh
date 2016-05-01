@@ -18,6 +18,10 @@
 #define DIM_Y           8
 #define DIM_Z           1
 
+#define DATA_OUT_COMPUTE    0
+#define DATA_OUT_TOTAL      0
+#define DATA_OUT_NORMAL     1
+
 // debug helpers
 #ifndef err
 #define err(e) \
