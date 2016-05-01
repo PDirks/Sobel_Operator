@@ -27,16 +27,18 @@ double sobel_filter::cpu_filter_error( uint8_t **host_image, uint8_t *gpu_image,
 }// end cpu_filter_error()
 
 void sobel_filter::timer_start(){
-
+    sdkCreateTimer(&timer);
+    sdkStartTimer(&timer);
     return;
 }// end timer_start()
 
 void sobel_filter::timer_stop(){
-
+    sdkStopTimer(&timer);
+    sdkDeleteTimer(&timer);
     return;
 }// end timer_stop()
 
 double sobel_filter::get_time(){
-
+    return sdkGetTimerValue(&timer);
     return 0;
 }// end get_time()
