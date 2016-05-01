@@ -46,8 +46,41 @@ void edge_detect::cpu_filter( uint8_t *host_image, uint8_t *cpu_image, uint32_t 
 }// end cpu_filter()
 
 double edge_detect::cpu_filter_error( uint8_t **host_image, uint8_t *gpu_image, uint32_t width, uint32_t height ){
+    uint32_t window_size = height * width;
 
-    return 0;
+    /*
+     * create cpu_image
+     */
+    uint8_t *cpu_image = (uint8_t*)calloc( window_size, sizeof( uint8_t ) );
+    if( cpu_image == NULL ){
+        return -1;
+    }
+
+    cpu_filter( *host_image, cpu_image, width, height );
+
+    /*
+     * compare pixels for errors
+     */
+    uint32_t error_count = 0;
+    for( uint32_t i = 0; i < window_size; i++ ){
+        if( cpu_image[i] != gpu_image[i] ){
+            error_count++;
+        }
+    }
+
+#if DEBUG
+    /*
+     * save cpu image file
+     */
+    char cpu_file[] = "out_cpu.pgm";
+    if(sdkSavePGM( cpu_file, cpu_image, width, height ) == false){
+        return -1;
+    }
+#endif
+
+    free(cpu_image);
+
+    return (double) (error_count / window_size);
 }// end cpu_filter_error()
 
 void edge_detect::timer_start(){

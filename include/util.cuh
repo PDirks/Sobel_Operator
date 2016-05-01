@@ -22,6 +22,8 @@
 #define DATA_OUT_TOTAL      0
 #define DATA_OUT_NORMAL     1
 
+#define DEBUG           0
+
 // debug helpers
 #ifndef err
 #define err(e) \
