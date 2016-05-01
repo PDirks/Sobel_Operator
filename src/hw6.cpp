@@ -35,22 +35,23 @@ int main(int argc, char *argv[]){
     }
     uint8_t *output = NULL;
 
+    sobel_filter sobel;
+
     /*
      * start timer
      */
-    filter.timerStart();
+    sobel.timer_start();
     double copy_compute_time = 0;
 
     /*
      * Push file data to device memory & run sobel filter
      */
-    sobel_filter sobel;
     copy_compute_time = sobel.gpu_load( &host_image, width, height, &output );
 
     /*
      * verify errors
      */
-    double errors = sobel.cpu_filter_error(&host_image, output, width, height)
+    double errors = sobel.cpu_filter_error(&host_image, output, width, height);
     if( errors < 0 ){
         err( "ERROR ON CPU IMAGE CREATE" );
     }
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]){
     /*
      * Print timings
      */
-    double total_time = sobel.getTime();
+    double total_time = sobel.get_time();
     std::cout << "Copy compute time: " << copy_compute_time << " ms" << std::endl;
     std::cout << "Total time: " << total_time << " ms" << std::endl;
     std::cout << "Error percentage: " << errors << std::endl;
@@ -73,7 +74,7 @@ int main(int argc, char *argv[]){
     /*
      * Cleanup
      */
-    filter.timerStop();
+    sobel.timer_stop();
     free(host_image);
     free(output);
     return 0;

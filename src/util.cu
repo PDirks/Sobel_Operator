@@ -6,6 +6,8 @@
  * May 1, 2016
  */
 
+#include "../include/util.cuh"
+
 __global__ void sobel_filter(uint8_t *input, const uint32_t width, const uint32_t height){
 
     return;
@@ -40,5 +42,4 @@ void sobel_filter::timer_stop(){
 
 double sobel_filter::get_time(){
     return sdkGetTimerValue(&timer);
-    return 0;
 }// end get_time()
