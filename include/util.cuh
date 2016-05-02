@@ -7,6 +7,7 @@
  */
 
 #include "../include/sdkHelper.h"
+#include <math.h>   // sqrt
 #include <stdint.h> // uint
 #include <stdio.h>
 #include <cuda_runtime.h>

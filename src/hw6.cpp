@@ -51,6 +51,12 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
+    /*
+     * save gpu-produced image
+     */
+    if(sdkSavePGM( output_file.c_str(), output, width, height ) == false){
+        err( "ERROR ON PPM save" );
+    }
 
     /*
      * verify errors
@@ -58,13 +64,6 @@ int main(int argc, char *argv[]){
     double errors = sobel.cpu_filter_error(&host_image, output, width, height);
     if( errors < 0 ){
         err( "ERROR ON CPU IMAGE CREATE" );
-    }
-
-    /*
-     * save gpu-produced image
-     */
-    if(sdkSavePGM( output_file.c_str(), output, width, height ) == false){
-        err( "ERROR ON PPM save" );
     }
 
     /*
@@ -91,5 +90,6 @@ int main(int argc, char *argv[]){
     sobel.timer_stop();
     free(host_image);
     free(output);
+
     return 0;
 }
