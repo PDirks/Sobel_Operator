@@ -9,30 +9,35 @@
 #include "../include/util.cuh"
 
 __global__ void sobel_filter(uint8_t *input, uint8_t *output, const uint32_t width, const uint32_t height){
-    uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
-    uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
+    const int32_t x = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t y = blockIdx.y * blockDim.y + threadIdx.y;
 
+    // error check
     if((x > width) || (y > height) || ((int)x < 0) || ((int)y < 0)) {
         return;
     }
 
-    int32_t gradient[3][3] = {
+    const int32_t gradient[3][3] = {
             {-1, 0, 1},
             {-2, 0, 2},
-            {-1, 0, -1}
+            {-1, 0, 1}
     };
 
+    /*
+     * perform sobel filter on pixel and it's surrounding neighbors
+     */
     double dx = 0;
     double dy = 0;
-    for( int32_t i = -1; i <= 1; i++ ){
-        for( int32_t j = -1; j <= 1; j++ ){
-             //pixel = gradient[j+1][i+1] * input[ ((y+j)*width) + (x+i) ];
-            dx += input[(i+x)*width + (j+y)] + gradient[i][j];
-            dy += input[(i+x)*width + (j+y)] + gradient[j][i];
+    for( int32_t i = 0; i < 3; i++ ){
+        for( int32_t j = 0; j < 3; j++ ){
+            dx += gradient[i][j] * input[(i+x)*width + (j+y)];
+            dy += gradient[j][i] * input[(i+x)*width + (j+y)];
         }
     }
 
-    double total_magnitude = sqrt( dx * dx + dy * dy );
+    double total_magnitude = sqrt( (double)dx * (double)dx + (double)dy * (double)dy );
+
+    // edge-case error check
     if( total_magnitude < 0 ){
         total_magnitude = 0;
     }
@@ -40,7 +45,8 @@ __global__ void sobel_filter(uint8_t *input, uint8_t *output, const uint32_t wid
         total_magnitude = 255;
     }
 
-    output[x * width + y ] = total_magnitude;
+    output[x * width + y ] = (uint8_t)(total_magnitude);
+
     return;
 }// end sobel_filter()
 
@@ -68,7 +74,7 @@ double edge_detect::gpu_load( uint8_t **host_image, uint32_t width, uint32_t hei
     // run filter
     sobel_filter<<<dimGrid, dimBlock, 0>>>(device_image_in, device_image_out, width, height);
 
-    cudaMemcpy(output, (void *)device_image_out, size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(*output, (void *)device_image_out, size, cudaMemcpyDeviceToHost);
 
     cudaFree( device_image_in );
     cudaFree( device_image_out );
@@ -77,6 +83,45 @@ double edge_detect::gpu_load( uint8_t **host_image, uint32_t width, uint32_t hei
 }// end gpu_load()
 
 void edge_detect::cpu_filter( uint8_t *host_image, uint8_t *cpu_image, uint32_t width, uint32_t height ){
+
+    const int gradient[3][3] = {
+            {-1, 0, 1},
+            {-2, 0, 2},
+            {-1, 0, 1}
+    };
+
+    /*
+     * iterate through each pixel, calculating the sobel filter, store filtered pixel to cpu_image
+     */
+    for( int32_t y = 1; y < height; y++ ) {
+        for (int32_t x = 1; x < width; x++) {
+            /*
+            uint8_t dx = 0;
+            uint8_t dy = 0;
+            */
+            double dx = 0;
+            double dy = 0;
+
+            for(int32_t i = -1; i <= 1; i++){
+                for(int32_t j = -1; j <= 1; j++){
+                    dx += gradient[i+1][j+1] * host_image[(i+x)*width + (j+y)];
+                    dy += gradient[j+1][i+1] * host_image[(i+x)*width + (j+y)];
+                }// end j-for
+            }// end i-for
+            double total_magnitude = sqrt( (double)dx * (double)dx + (double)dy * (double)dy );
+
+            // edge-case error check
+            if( total_magnitude < 0 ){
+                total_magnitude = 0;
+            }
+            if( total_magnitude > 255 ){
+                total_magnitude = 255;
+            }
+
+            cpu_image[x * width + y] = (uint8_t)total_magnitude;
+        }// end x-for
+    }//end y-for
+
 
     return;
 }// end cpu_filter()
@@ -104,11 +149,12 @@ double edge_detect::cpu_filter_error( uint8_t **host_image, uint8_t *gpu_image, 
         }
     }
 
-#if DEBUG
+//#if DEBUG
+#if 1
     /*
      * save cpu image file
      */
-    char cpu_file[] = "out_cpu.pgm";
+    char cpu_file[] = "../data/out_cpu.pgm";
     if(sdkSavePGM( cpu_file, cpu_image, width, height ) == false){
         return -1;
     }
